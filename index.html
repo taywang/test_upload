@@ -165,7 +165,6 @@
         }
 
         setControlsDisabled(true);
-        statusEl.textContent = `⬆️ 正在上传文件：${file.name}\n大小：${(file.size / 1024).toFixed(2)} KB`;
         progressBar.style.width = "0%";
         progressContainer.style.display = "block";
 
@@ -173,6 +172,9 @@
         const uint8Array = new Uint8Array(arrayBuffer);
 
         const startTime = Date.now();
+        let lastLoaded = 0;
+        let lastTime = Date.now();
+        let speedTimer = null;
 
         const xhr = new XMLHttpRequest();
         xhr.open("PUT", uploadUrl, true);
@@ -181,23 +183,46 @@
           if (e.lengthComputable) {
             const percent = (e.loaded / e.total) * 100;
             progressBar.style.width = percent.toFixed(2) + "%";
-            statusEl.textContent = `⬆️ 上传进度：${percent.toFixed(2)}%\n文件：${file.name}\n大小：${(file.size / 1024).toFixed(2)} KB`;
+
+            const now = Date.now();
+            const timeDiff = (now - lastTime) / 1000; // 秒
+            const bytesDiff = e.loaded - lastLoaded;
+            const speedKBps = bytesDiff / 1024 / timeDiff;
+
+            lastTime = now;
+            lastLoaded = e.loaded;
+
+            statusEl.textContent = `⬆️ 上传进度：${percent.toFixed(
+              2
+            )}%（${speedKBps.toFixed(1)} KB/s）\n文件：${file.name}\n大小：${(
+              file.size / 1024
+            ).toFixed(2)} KB`;
           }
         };
 
         xhr.onload = () => {
-          const duration = Date.now() - startTime;
+          const endTime = Date.now();
+          const durationMs = endTime - startTime;
+          const durationSec = durationMs / 1000;
+          const avgSpeedKBps = file.size / 1024 / durationSec;
+
+          clearInterval(speedTimer);
           if (xhr.status >= 200 && xhr.status < 300) {
             progressBar.style.width = "100%";
-            statusEl.textContent = `✅ 上传成功！耗时 ${duration} ms\n文件：${file.name}\n大小：${(file.size / 1024).toFixed(2)} KB`;
+            statusEl.textContent = `✅ 上传成功！耗时 ${durationMs} MS，平均速度：${avgSpeedKBps.toFixed(1)} KB/s\n文件：${
+              file.name
+            }\n大小：${(file.size / 1024).toFixed(2)} KB`;
           } else {
             statusEl.textContent = `❌ 上传失败，状态码: ${xhr.status}\n文件：${file.name}`;
           }
+
           setControlsDisabled(false);
-          progressContainer.style.display = xhr.status >= 200 && xhr.status < 300 ? "none" : "block";
+          progressContainer.style.display =
+            xhr.status >= 200 && xhr.status < 300 ? "none" : "block";
         };
 
         xhr.onerror = () => {
+          clearInterval(speedTimer);
           statusEl.textContent = "🚨 上传出错，请检查网络或上传地址";
           setControlsDisabled(false);
           progressContainer.style.display = "none";
