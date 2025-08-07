@@ -72,7 +72,12 @@
         transition: background 0.3s;
       }
 
-      button:hover {
+      button:disabled {
+        background: #a0bcd8;
+        cursor: not-allowed;
+      }
+
+      button:hover:enabled {
         background: #2980b9;
       }
 
@@ -85,6 +90,26 @@
         padding: 12px;
         border-radius: 6px;
         white-space: pre-wrap;
+        min-height: 60px;
+      }
+
+      /* 进度条容器 */
+      #progressContainer {
+        width: 100%;
+        background-color: #ddd;
+        border-radius: 6px;
+        overflow: hidden;
+        margin-top: 12px;
+        height: 16px;
+        display: none;
+      }
+
+      /* 进度条 */
+      #progressBar {
+        height: 100%;
+        width: 0%;
+        background-color: #3498db;
+        transition: width 0.2s ease;
       }
     </style>
   </head>
@@ -104,6 +129,10 @@
 
       <button id="uploadBtn">🚀 开始上传</button>
 
+      <div id="progressContainer">
+        <div id="progressBar"></div>
+      </div>
+
       <div id="status"></div>
     </div>
 
@@ -112,6 +141,14 @@
       const fileInput = document.getElementById("fileInput");
       const uploadUrlInput = document.getElementById("uploadUrl");
       const statusEl = document.getElementById("status");
+      const progressContainer = document.getElementById("progressContainer");
+      const progressBar = document.getElementById("progressBar");
+
+      function setControlsDisabled(disabled) {
+        uploadBtn.disabled = disabled;
+        fileInput.disabled = disabled;
+        uploadUrlInput.disabled = disabled;
+      }
 
       uploadBtn.onclick = async () => {
         const file = fileInput.files[0];
@@ -127,30 +164,46 @@
           return;
         }
 
+        setControlsDisabled(true);
+        statusEl.textContent = `⬆️ 正在上传文件：${file.name}\n大小：${(file.size / 1024).toFixed(2)} KB`;
+        progressBar.style.width = "0%";
+        progressContainer.style.display = "block";
+
         const arrayBuffer = await file.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
 
         const startTime = Date.now();
-        statusEl.innerHTML = `⬆️ 正在上传文件：<b>${file.name}</b>\n大小：${(
-          file.size / 1024
-        ).toFixed(2)} KB`;
 
-        try {
-          const response = await fetch(uploadUrl, {
-            method: "PUT",
-            body: uint8Array,
-          });
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", uploadUrl, true);
 
-          const duration = Date.now() - startTime;
-
-          if (response.ok) {
-            statusEl.innerHTML += `\n✅ 上传成功！耗时 <b>${duration} ms</b>`;
-          } else {
-            statusEl.innerHTML += `\n❌ 上传失败，状态码: ${response.status}`;
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percent = (e.loaded / e.total) * 100;
+            progressBar.style.width = percent.toFixed(2) + "%";
+            statusEl.textContent = `⬆️ 上传进度：${percent.toFixed(2)}%\n文件：${file.name}\n大小：${(file.size / 1024).toFixed(2)} KB`;
           }
-        } catch (error) {
-          statusEl.innerHTML += `\n🚨 上传出错: ${error}`;
-        }
+        };
+
+        xhr.onload = () => {
+          const duration = Date.now() - startTime;
+          if (xhr.status >= 200 && xhr.status < 300) {
+            progressBar.style.width = "100%";
+            statusEl.textContent = `✅ 上传成功！耗时 ${duration} ms\n文件：${file.name}\n大小：${(file.size / 1024).toFixed(2)} KB`;
+          } else {
+            statusEl.textContent = `❌ 上传失败，状态码: ${xhr.status}\n文件：${file.name}`;
+          }
+          setControlsDisabled(false);
+          progressContainer.style.display = xhr.status >= 200 && xhr.status < 300 ? "none" : "block";
+        };
+
+        xhr.onerror = () => {
+          statusEl.textContent = "🚨 上传出错，请检查网络或上传地址";
+          setControlsDisabled(false);
+          progressContainer.style.display = "none";
+        };
+
+        xhr.send(uint8Array);
       };
     </script>
   </body>
