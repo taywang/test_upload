@@ -2,93 +2,100 @@
  * @Author       : JinTao.Wang
  * @Date         : 2025-08-06 19:43:24
  * @LastEditors  : JinTao.Wang
- * @LastEditTime : 2025-08-06 20:40:10
+ * @LastEditTime : 2025-08-07 10:15:12
  * @Description  : file content
 -->
 <!DOCTYPE html>
 <html lang="zh">
-<head>
-  <meta charset="UTF-8" />
-  <title>OSS 上传测试工具</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 30px;
-      background: #f8f8f8;
-    }
-    h1 {
-      color: #333;
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 12px;
-      font-size: 16px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-top: 8px;
-    }
-    #status {
-      margin-top: 20px;
-      font-family: monospace;
-    }
-  </style>
-</head>
-<body>
-  <h1>OSS 图片上传测试工具</h1>
-
-  <label for="uploadUrl">请输入 OSS 上传地址（PUT 链接）：</label><br />
-  <input type="text" id="uploadUrl" placeholder="https://xxx.aliyuncs.com/xxx.png?..."><br />
-
-  <input type="file" id="fileInput" accept="image/*" /><br />
-  <button id="uploadBtn">上传图片</button>
-
-  <div id="status"></div>
-
-  <script>
-    const uploadBtn = document.getElementById("uploadBtn");
-    const fileInput = document.getElementById("fileInput");
-    const uploadUrlInput = document.getElementById("uploadUrl");
-    const statusEl = document.getElementById("status");
-
-    uploadBtn.onclick = async () => {
-      const file = fileInput.files[0];
-      
-      const uploadUrl = uploadUrlInput.value.trim();
-      if (!uploadUrl || !uploadUrl.startsWith("http")) {
-        alert("请输入有效的 OSS 上传地址！");
-        return;
+  <head>
+    <meta charset="UTF-8" />
+    <title>OSS 上传测试工具</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 30px;
+        background: #f8f8f8;
       }
-      if (!file) {
-        alert("请选择一张图片！");
-        return;
+      h1 {
+        color: #333;
       }
+      input[type="text"] {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 12px;
+        font-size: 16px;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin-top: 8px;
+      }
+      #status {
+        margin-top: 20px;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>OSS 上传测试</h1>
 
-      const arrayBuffer = await file.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
+    <label for="uploadUrl">请输入 OSS 上传地址（PUT 链接）：</label><br />
+    <input
+      type="text"
+      id="uploadUrl"
+      placeholder="https://xxx.aliyuncs.com/xxx.png?..."
+    /><br />
 
-      const startTime = Date.now();
-      statusEl.innerText = `⬆️ 开始上传 ${file.name}...`;
+    <input type="file" id="fileInput" /><br />
+    <button id="uploadBtn">上传文件</button>
 
-      try {
-        const response = await fetch(uploadUrl, {
-          method: "PUT",
-          body: uint8Array,
-        });
+    <div id="status"></div>
 
-        const duration = Date.now() - startTime;
+    <script>
+      const uploadBtn = document.getElementById("uploadBtn");
+      const fileInput = document.getElementById("fileInput");
+      const uploadUrlInput = document.getElementById("uploadUrl");
+      const statusEl = document.getElementById("status");
 
-        if (response.ok) {
-          statusEl.innerHTML = `✅ 上传成功！耗时 <b>${duration} ms</b>`;
-        } else {
-          statusEl.innerHTML = `❌ 上传失败，状态码: ${response.status}`;
+      uploadBtn.onclick = async () => {
+        const file = fileInput.files[0];
+
+        if (!file) {
+          alert("请选择一个文件！");
+          return;
         }
-      } catch (error) {
-        statusEl.innerHTML = `🚨 上传出错: ${error}`;
-      }
-    };
-  </script>
-</body>
+
+        const uploadUrl = uploadUrlInput.value.trim();
+        if (!uploadUrl || !uploadUrl.startsWith("http")) {
+          alert("请输入有效的 OSS 上传地址！");
+          return;
+        }
+
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+
+        const startTime = Date.now();
+        statusEl.innerHTML = `⬆️ 开始上传文件：<b>${file.name}</b><br>大小：${(
+          file.size / 1024
+        ).toFixed(2)} KB`;
+
+        try {
+          const response = await fetch(uploadUrl, {
+            method: "PUT",
+            body: uint8Array,
+          });
+
+          const duration = Date.now() - startTime;
+
+          if (response.ok) {
+            statusEl.innerHTML += `<br>✅ 上传成功！耗时 <b>${duration} ms</b>`;
+          } else {
+            statusEl.innerHTML += `<br>❌ 上传失败，状态码: ${response.status}`;
+          }
+        } catch (error) {
+          statusEl.innerHTML += `<br>🚨 上传出错: ${error}`;
+        }
+      };
+    </script>
+  </body>
 </html>
