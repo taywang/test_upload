@@ -209,7 +209,7 @@
           clearInterval(speedTimer);
           if (xhr.status >= 200 && xhr.status < 300) {
             progressBar.style.width = "100%";
-            statusEl.textContent = `✅ 上传成功！耗时 ${durationMs} MS，平均速度：${avgSpeedKBps.toFixed(1)} KB/s\n文件：${
+            statusEl.textContent = `✅ 上传成功！耗时 ${durationMs}/ms，平均速度：${avgSpeedKBps.toFixed(1)} KB/s\n文件：${
               file.name
             }\n大小：${(file.size / 1024).toFixed(2)} KB`;
           } else {
