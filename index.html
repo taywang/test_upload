@@ -1,3 +1,10 @@
+<!--
+ * @Author       : JinTao.Wang
+ * @Date         : 2025-08-06 19:43:24
+ * @LastEditors  : JinTao.Wang
+ * @LastEditTime : 2025-08-06 20:40:10
+ * @Description  : file content
+-->
 <!DOCTYPE html>
 <html lang="zh">
 <head>
@@ -59,13 +66,16 @@
         return;
       }
 
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+
       const startTime = Date.now();
       statusEl.innerText = `⬆️ 开始上传 ${file.name}...`;
 
       try {
         const response = await fetch(uploadUrl, {
           method: "PUT",
-          body: file,
+          body: uint8Array,
         });
 
         const duration = Date.now() - startTime;
