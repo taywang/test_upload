@@ -1,55 +1,111 @@
-<!--
- * @Author       : JinTao.Wang
- * @Date         : 2025-08-06 19:43:24
- * @LastEditors  : JinTao.Wang
- * @LastEditTime : 2025-08-07 10:15:12
- * @Description  : file content
--->
 <!DOCTYPE html>
 <html lang="zh">
   <head>
     <meta charset="UTF-8" />
     <title>OSS 上传测试工具</title>
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       body {
-        font-family: sans-serif;
-        padding: 30px;
-        background: #f8f8f8;
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: #eef1f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
       }
-      h1 {
-        color: #333;
-      }
-      input[type="text"] {
+
+      .container {
+        background: #fff;
+        padding: 30px 40px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
         width: 100%;
-        padding: 8px;
-        margin-bottom: 12px;
-        font-size: 16px;
       }
+
+      h1 {
+        margin-top: 0;
+        font-size: 24px;
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 25px;
+      }
+
+      label {
+        font-size: 14px;
+        font-weight: bold;
+        color: #34495e;
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      input[type="text"],
+      input[type="file"] {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+        margin-bottom: 15px;
+        transition: border-color 0.2s;
+      }
+
+      input[type="text"]:focus {
+        border-color: #3498db;
+        outline: none;
+      }
+
       button {
-        padding: 10px 20px;
+        width: 100%;
+        padding: 12px;
         font-size: 16px;
-        margin-top: 8px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s;
       }
+
+      button:hover {
+        background: #2980b9;
+      }
+
       #status {
         margin-top: 20px;
-        font-family: monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #2c3e50;
+        background: #f5f5f5;
+        padding: 12px;
+        border-radius: 6px;
+        white-space: pre-wrap;
       }
     </style>
   </head>
   <body>
-    <h1>OSS 上传测试</h1>
+    <div class="container">
+      <h1>OSS 上传测试</h1>
 
-    <label for="uploadUrl">请输入 OSS 上传地址（PUT 链接）：</label><br />
-    <input
-      type="text"
-      id="uploadUrl"
-      placeholder="https://xxx.aliyuncs.com/xxx.png?..."
-    /><br />
+      <label for="uploadUrl">OSS 上传地址（PUT 链接）</label>
+      <input
+        type="text"
+        id="uploadUrl"
+        placeholder="https://your-bucket.oss-cn-xxx.aliyuncs.com/file.png?Signature=..."
+      />
 
-    <input type="file" id="fileInput" /><br />
-    <button id="uploadBtn">上传文件</button>
+      <label for="fileInput">选择上传文件</label>
+      <input type="file" id="fileInput" />
 
-    <div id="status"></div>
+      <button id="uploadBtn">🚀 开始上传</button>
+
+      <div id="status"></div>
+    </div>
 
     <script>
       const uploadBtn = document.getElementById("uploadBtn");
@@ -75,7 +131,7 @@
         const uint8Array = new Uint8Array(arrayBuffer);
 
         const startTime = Date.now();
-        statusEl.innerHTML = `⬆️ 开始上传文件：<b>${file.name}</b><br>大小：${(
+        statusEl.innerHTML = `⬆️ 正在上传文件：<b>${file.name}</b>\n大小：${(
           file.size / 1024
         ).toFixed(2)} KB`;
 
@@ -88,12 +144,12 @@
           const duration = Date.now() - startTime;
 
           if (response.ok) {
-            statusEl.innerHTML += `<br>✅ 上传成功！耗时 <b>${duration} ms</b>`;
+            statusEl.innerHTML += `\n✅ 上传成功！耗时 <b>${duration} ms</b>`;
           } else {
-            statusEl.innerHTML += `<br>❌ 上传失败，状态码: ${response.status}`;
+            statusEl.innerHTML += `\n❌ 上传失败，状态码: ${response.status}`;
           }
         } catch (error) {
-          statusEl.innerHTML += `<br>🚨 上传出错: ${error}`;
+          statusEl.innerHTML += `\n🚨 上传出错: ${error}`;
         }
       };
     </script>
